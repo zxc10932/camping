@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>露營大作戰</title>
+<style>
+:root{--bg:#f6f3ea;--card:#fff;--tx:#2b2a26;--mu:#77736a;--ac:#2f7d4f;--ac2:#e8f3ec;--bd:#e2ddd0;--dg:#b3402e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1d1a;--card:#262925;--tx:#ecebe5;--mu:#a09d93;--ac:#6cc58b;--ac2:#27382d;--bd:#3a3d37;--dg:#e5826f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1d1a;--card:#262925;--tx:#ecebe5;--mu:#a09d93;--ac:#6cc58b;--ac2:#27382d;--bd:#3a3d37;--dg:#e5826f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}h2{font-size:18px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:14px 0}
+.mu{color:var(--mu);font-size:14px}
+input,select,button{font:inherit;color:var(--tx)}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 120px}
+button{border:0;border-radius:8px;padding:9px 14px;background:var(--ac);color:#fff;cursor:pointer;font-weight:600}
+button.g{background:var(--ac2);color:var(--ac)}button.x{background:none;color:var(--dg);padding:4px 8px}
+a.nav{display:inline-block;margin-top:12px;padding:10px 16px;background:var(--ac);color:#fff;border-radius:8px;text-decoration:none;font-weight:600}
+.item{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--bd)}
+.item input[type=checkbox]{width:20px;height:20px;flex:none}
+.item .n{flex:1;min-width:0}.item.done .n b{text-decoration:line-through;color:var(--mu)}
+.who{width:96px;flex:none;font-size:14px;padding:6px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{background:var(--ac2);color:var(--ac);border-radius:99px;padding:3px 6px 3px 12px;font-size:14px;font-weight:600}
+.chip button{padding:4px 10px;margin-left:2px;background:none;color:var(--mu);font-size:15px}
+.split{display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0 10px}
+.split label{display:flex;align-items:center;gap:5px;margin:0;font-size:15px;color:var(--tx)}
+.split input{width:18px;height:18px}
+#msg{text-align:center;padding:30px 10px}
+</style>
+</head>
+<body>
+<main>
+<h1>⛺ 露營大作戰</h1>
+<p class="mu">大家一起編輯：誰帶什麼、去哪裡、花多少錢怎麼分。</p>
+<div id="msg" class="mu">載入中…（請用完整連結開啟）</div>
+<div id="app" hidden>
+  <div class="card">
+    <h2>👥 參加人員</h2>
+    <button id="share" class="g" style="margin-bottom:10px">📋 複製邀請連結</button>
+    <div id="chips" class="chips"></div>
+    <datalist id="plist"></datalist>
+    <div class="row">
+      <input id="p-name" placeholder="輸入名字" style="flex:2 1 140px">
+      <button id="p-add" style="flex:0 0 auto">加入</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📍 時間與地點</h2>
+    <div class="row">
+      <div><label>活動名稱</label><input id="t-name" placeholder="例如：11月中秋露營"></div>
+      <div><label>日期</label><input id="t-date" placeholder="例如：11/21–11/22"></div>
+    </div>
+    <label>營地名稱</label><input id="t-place" placeholder="例如：○○露營區">
+    <label>地址或 Google 地圖網址（填網址會直接導航）</label><input id="t-addr" placeholder="地址，或貼上 maps.app.goo.gl 連結">
+    <div id="navbox"></div>
+  </div>
+
+  <div class="card">
+    <h2>🏕️ 露營用具</h2>
+    <div class="row">
+      <input id="g-name" placeholder="例如：帳篷、烤肉架、折疊椅" style="flex:2 1 160px">
+      <input id="g-who" list="plist" placeholder="誰帶（可留空）" style="flex:1 1 90px">
+      <button id="g-add" style="flex:0 0 auto">新增</button>
+    </div>
+    <div id="list-gear" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>🥩 食材</h2>
+    <div class="row">
+      <input id="f-name" placeholder="例如：豬五花、玉米、飲料" style="flex:2 1 160px">
+      <input id="f-who" list="plist" placeholder="誰帶（可留空）" style="flex:1 1 90px">
+      <button id="f-add" style="flex:0 0 auto">新增</button>
+    </div>
+    <div id="list-food" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>💰 花費分攤</h2>
+    <div class="row">
+      <input id="e-desc" placeholder="項目，例如：營位費、買菜" style="flex:2 1 140px">
+      <input id="e-amt" type="number" inputmode="decimal" min="0" placeholder="金額" style="flex:1 1 90px">
+    </div>
+    <label>誰先付</label><select id="e-payer"></select>
+    <label>分攤給誰 <button class="g" id="e-all" type="button" style="padding:2px 10px;font-size:13px">全選</button></label>
+    <div id="e-split" class="split"></div>
+    <button id="e-add">新增花費</button>
+    <div id="exp-list" style="margin-top:12px"></div>
+    <div id="exp-sum"></div>
+  </div>
+</div>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,doc,collection,onSnapshot,setDoc,updateDoc,deleteDoc,addDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== 把 Firebase 網頁應用程式的 firebaseConfig 內容貼在這裡 ===== */
+const firebaseConfig={
+  apiKey:"貼上你的 apiKey",
+  authDomain:"貼上你的 authDomain",
+  projectId:"貼上你的 projectId",
+  storageBucket:"貼上你的 storageBucket",
+  messagingSenderId:"貼上你的 messagingSenderId",
+  appId:"貼上你的 appId"
+};
+/* ================================================================= */
+
+const $=s=>document.querySelector(s);
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+let db=null,items=[],exps=[],people=[],unchecked=new Set();
+const fmt=c=>(c/100).toFixed(2).replace(/\.00$/,"");
+const parsePeople=v=>Array.isArray(v)?v:String(v||"").split(/[,，、\s]+/).filter(Boolean);
+function names(){const s=new Set(people);exps.forEach(e=>{e.payer&&s.add(e.payer);(e.split||[]).forEach(x=>s.add(x))});return [...s]}
+function say(m){let t=$("#toast");if(!t){t=el("div");t.id="toast";t.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:99;max-width:90%";document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>{t.hidden=true},3000)}
+function arm(b,fn){let t=null;const o=b.textContent;b.onclick=()=>{if(t){clearTimeout(t);t=null;fn();return}b.textContent="確定刪除？";t=setTimeout(()=>{t=null;b.textContent=o},3000)}}
+const fail=()=>say("儲存失敗，請確認你有編輯權限");
+
+/* ---- trip ---- */
+function mapsUrl(p,a){const q=(a||"").trim()||(p||"").trim();if(!q)return "";
+  if(/^https?:\/\//i.test(q))return q;
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((p&&a?p+" ":"")+q)}
+function renderNav(){const u=mapsUrl($("#t-place").value,$("#t-addr").value),b=$("#navbox");b.textContent="";
+  if(!u)return;const l=el("a","nav","🧭 用 Google 地圖導航");l.target="_blank";l.rel="noopener";l.href=u;b.appendChild(l)}
+function bindTrip(){
+  const ids={"t-name":"name","t-date":"date","t-place":"place","t-addr":"addr"};
+  const ref=db.doc("trip/info");
+  ref.onSnapshot(s=>{const d=s.data()||{};
+    for(const k in ids){const e=document.getElementById(k);if(document.activeElement!==e)e.value=d[ids[k]]||""}
+    renderNav()},e=>{});
+  for(const k in ids)document.getElementById(k).onchange=async()=>{
+    try{await ref.set({name:$("#t-name").value,date:$("#t-date").value,place:$("#t-place").value,addr:$("#t-addr").value})}catch(e){fail()}renderNav()}}
+
+/* ---- people ---- */
+function renderPeople(){
+  const c=$("#chips");c.textContent="";
+  if(!people.length)c.appendChild(el("span","mu","還沒有人，先加入第一位吧！"));
+  for(const n of people){const ch=el("span","chip",n);const x=el("button",null,"✕");
+    arm(x,()=>db.doc("trip/people").set({list:people.filter(p=>p!==n)}).catch(fail));
+    ch.appendChild(x);c.appendChild(ch)}
+  renderForm();renderExp()}
+function bindPeople(){
+  const pr=db.doc("trip/people");
+  pr.onSnapshot(s=>{people=parsePeople((s.data()||{}).list);renderPeople()},e=>{});
+  const add=()=>{const n=$("#p-name").value.trim();if(!n)return;$("#p-name").value="";
+    if(!names().includes(n))pr.set({list:[...people,n]}).catch(fail)};
+  $("#p-add").onclick=add;$("#p-name").onkeydown=e=>{if(e.key==="Enter")add()}}
+
+/* ---- items ---- */
+function renderList(){renderBox("#list-gear",items.filter(i=>i.cat!=="食材"));renderBox("#list-food",items.filter(i=>i.cat==="食材"))}
+function renderBox(sel,g){const box=$(sel);box.textContent="";
+  if(!g.length){box.appendChild(el("p","mu","還沒有項目，先新增一個吧！"));return}
+  box.appendChild(el("div","mu","已備齊 "+g.filter(i=>i.done).length+"/"+g.length));
+  for(const it of g){
+    const r=el("div","item"+(it.done?" done":""));
+    const cb=el("input");cb.type="checkbox";cb.checked=!!it.done;cb.onchange=()=>db.doc("items/"+it.id).update({done:cb.checked}).catch(()=>{});
+    const n=el("div","n");n.appendChild(el("b",null,it.name));
+    const w=el("input","who");w.placeholder="誰帶？";w.setAttribute("list","plist");w.value=it.who||"";
+    w.onchange=()=>db.doc("items/"+it.id).update({who:w.value.trim()}).catch(()=>{});
+    const del=el("button","x","✕");arm(del,()=>db.doc("items/"+it.id).delete().catch(()=>{}));
+    r.append(cb,n,w,del);box.appendChild(r)}}
+function bindItems(){
+  db.collection("items").onSnapshot(s=>{items=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    if(!(document.activeElement&&document.activeElement.classList.contains("who")))renderList()},e=>{});
+  const setup=(cat,n,w,b)=>{
+    $(b).onclick=async()=>{const name=$(n).value.trim();if(!name)return;
+      try{await db.collection("items").add({cat,name,who:$(w).value.trim(),done:false,ts:Date.now()});$(n).value="";$(w).value=""}catch(e){fail()}};
+    $(n).onkeydown=e=>{if(e.key==="Enter")$(b).click()}};
+  setup("露營用具","#g-name","#g-who","#g-add");setup("食材","#f-name","#f-who","#f-add")}
+
+/* ---- expenses ---- */
+function renderForm(){
+  const ns=names(),ps=$("#e-payer"),cur=ps.value;ps.textContent="";
+  const o0=el("option",null,"請選擇");o0.value="";ps.appendChild(o0);
+  for(const n of ns){const o=el("option",null,n);o.value=n;ps.appendChild(o)}
+  ps.value=ns.includes(cur)?cur:"";
+  const pl=$("#plist");pl.textContent="";ns.forEach(n=>{const o=document.createElement("option");o.value=n;pl.appendChild(o)});
+  const sp=$("#e-split");sp.textContent="";
+  if(!ns.length)sp.appendChild(el("span","mu","請先在上方加入參加人員"));
+  for(const n of ns){const l=el("label");const c=el("input");c.type="checkbox";c.value=n;c.checked=!unchecked.has(n);
+    c.onchange=()=>{c.checked?unchecked.delete(n):unchecked.add(n)};l.append(c,document.createTextNode(n));sp.appendChild(l)}}
+function settle(ns){
+  const paid={},owed={};ns.forEach(x=>{paid[x]=0;owed[x]=0});let total=0;
+  for(const e of exps){const c=Math.round(e.amount*100);total+=c;if(e.payer in paid)paid[e.payer]+=c;
+    const sp=(e.split&&e.split.length?e.split:ns).filter(x=>x in owed);if(!sp.length)continue;
+    const b=Math.floor(c/sp.length);let r=c-b*sp.length;
+    sp.forEach(x=>{owed[x]+=b+(r>0?1:0);r--})}
+  const net={};ns.forEach(x=>net[x]=paid[x]-owed[x]);
+  const cs=ns.filter(x=>net[x]>0).map(x=>({n:x,v:net[x]})),ds=ns.filter(x=>net[x]<0).map(x=>({n:x,v:-net[x]})),out=[];
+  for(const d of ds)for(const c of cs){if(d.v>0&&c.v>0&&d.v===c.v){out.push([d.n,c.n,d.v]);d.v=0;c.v=0}}
+  let D=ds.filter(x=>x.v>0),C=cs.filter(x=>x.v>0);
+  while(D.length&&C.length){D.sort((a,b)=>b.v-a.v);C.sort((a,b)=>b.v-a.v);const d=D[0],c=C[0],m=Math.min(d.v,c.v);
+    out.push([d.n,c.n,m]);d.v-=m;c.v-=m;D=D.filter(x=>x.v>0);C=C.filter(x=>x.v>0)}
+  return {total,owed,paid,net,out}}
+function renderExp(){
+  const ns=names(),r=settle(ns),L=$("#exp-list"),S=$("#exp-sum");L.textContent="";S.textContent="";
+  if(!exps.length){L.appendChild(el("p","mu","還沒有花費紀錄。"));return}
+  for(const e of exps){const row=el("div","item"),n=el("div","n");
+    const sp=e.split&&e.split.length?e.split:ns;
+    n.appendChild(el("b",null,e.desc));
+    n.appendChild(el("div","mu",e.payer+" 先付 · 分攤："+(sp.length===ns.length?"全部人":sp.join("、"))));
+    const a=el("div",null,"$"+fmt(Math.round(e.amount*100)));a.style.fontWeight="600";
+    const del=el("button","x","✕");arm(del,()=>db.doc("expenses/"+e.id).delete().catch(()=>{}));
+    row.append(n,a,del);L.appendChild(row)}
+  const h=el("h2",null,"結算");h.style.marginTop="16px";S.appendChild(h);
+  S.appendChild(el("div","mu","總花費 $"+fmt(r.total)));
+  for(const x of ns){const v=r.net[x];
+    const row=el("div","item"),n=el("div","n");
+    n.appendChild(el("b",null,x));n.appendChild(el("div","mu","已付 $"+fmt(r.paid[x])+" · 應分攤 $"+fmt(r.owed[x])));
+    const t=el("div",null,v>0?"可收回 $"+fmt(v):v<0?"需補 $"+fmt(-v):"打平");
+    t.style.color=v>0?"var(--ac)":v<0?"var(--dg)":"var(--mu)";t.style.fontWeight="600";
+    row.append(n,t);S.appendChild(row)}
+  const h2=el("h2",null,"最少轉帳方式（"+r.out.length+" 筆）");h2.style.marginTop="16px";S.appendChild(h2);
+  if(!r.out.length)S.appendChild(el("p","mu","大家已經打平，不用轉帳 🎉"));
+  for(const [f,t,v] of r.out){const row=el("div","item");row.appendChild(el("div","n",f+" → "+t));row.appendChild(el("b",null,"$"+fmt(v)));S.appendChild(row)}}
+function bindExpenses(){
+  db.collection("expenses").onSnapshot(s=>{exps=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ts||0)-(b.ts||0));renderForm();renderExp()},e=>{});
+  $("#e-all").onclick=()=>{unchecked.clear();document.querySelectorAll("#e-split input").forEach(c=>c.checked=true)};
+  $("#e-add").onclick=async()=>{
+    const desc=$("#e-desc").value.trim(),payer=$("#e-payer").value,amount=parseFloat($("#e-amt").value);
+    const split=[...document.querySelectorAll("#e-split input")].filter(c=>c.checked).map(c=>c.value);
+    if(!desc||!payer||!(amount>0)){say("請填項目、金額，並選擇誰先付");return}
+    if(!split.length){say("請至少選一位分攤的人");return}
+    try{await db.collection("expenses").add({desc,payer,amount,split,ts:Date.now()});$("#e-desc").value="";$("#e-amt").value=""}catch(e){fail()}}}
+
+(()=>{
+  if(!firebaseConfig.apiKey||firebaseConfig.apiKey.startsWith("貼上")){$("#msg").textContent="請先把 Firebase 設定碼貼到檔案最上方的 firebaseConfig。";return}
+  let room=location.hash.slice(1).replace(/[^a-zA-Z0-9_-]/g,"");
+  if(room.length<8){room=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>"abcdefghijkmnpqrstuvwxyz23456789"[b%32]).join("");history.replaceState(null,"","#"+room)}
+  const fs=getFirestore(initializeApp(firebaseConfig)),base="rooms/"+room+"/";
+  db={
+    doc:p=>{const r=doc(fs,base+p);return{onSnapshot:(n,e)=>onSnapshot(r,n,e),set:d=>setDoc(r,d),update:d=>updateDoc(r,d),delete:()=>deleteDoc(r)}},
+    collection:p=>{const r=collection(fs,base+p);return{onSnapshot:(n,e)=>onSnapshot(r,n,e),add:d=>addDoc(r,d)}}
+  };
+  $("#msg").hidden=true;$("#app").hidden=false;
+  $("#share").onclick=()=>navigator.clipboard.writeText(location.href).then(()=>say("已複製邀請連結，傳給朋友吧！")).catch(()=>say("請手動複製網址列的完整網址"));
+  bindPeople();bindTrip();bindItems();bindExpenses()})();
+</script>
+</body>
+</html>
